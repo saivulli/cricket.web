@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop | Crixon</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #181818;
+            color: #f5f5f5;
+            font-family: 'Montserrat', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+        header {
+            background: #222;
+            padding: 1.2rem 0;
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #333;
+        }
+        .shop-title {
+            color: #e94560;
+            font-size: 2rem;
+            margin: 2rem 0 1rem 0;
+            text-align: center;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+        .product-card {
+            background: #232323;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px #0002;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 1rem 1rem 1rem;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px) scale(1.03);
+        }
+        .product-image {
+            width: 100%;
+            max-width: 180px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #181818;
+            border: 2px solid #333;
+            margin-bottom: 1rem;
+        }
+        .product-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fafafa;
+            margin-bottom: 0.3rem;
+            text-align: center;
+        }
+        .product-price {
+            color: #e94560;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        .add-cart-btn {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .add-cart-btn:hover {
+            background: #b71c3b;
+        }
+        .buy-now-btn {
+            background: #fff;
+            color: #e94560;
+            border: 2px solid #e94560;
+            border-radius: 25px;
+            padding: 0.7rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .buy-now-btn:hover {
+            background: #e94560;
+            color: #fff;
+        }
+        .cart-icon {
+            position: fixed;
+            top: 1.5rem;
+            right: 2rem;
+            background: #232323;
+            color: #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            box-shadow: 0 2px 8px #0002;
+            cursor: pointer;
+            z-index: 1001;
+        }
+        .cart-count {
+            position: absolute;
+            top: 7px;
+            right: 10px;
+            background: #e94560;
+            color: #fff;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+        /* Cart Modal */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 350px;
+            max-width: 95vw;
+            height: 100vh;
+            background: #232323;
+            box-shadow: -4px 0 24px #0005;
+            z-index: 2000;
+            padding: 2rem 1.2rem 1.2rem 1.2rem;
+            overflow-y: auto;
+            transition: right 0.3s;
+        }
+        .cart-modal.show {
+            display: block;
+        }
+        .cart-modal h2 {
+            color: #e94560;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid #333;
+            padding-bottom: 1rem;
+        }
+        .cart-item-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 8px;
+            background: #181818;
+            border: 2px solid #333;
+            margin-right: 1rem;
+        }
+        .cart-item-details {
+            flex: 1;
+        }
+        .cart-item-name {
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .cart-item-price {
+            color: #e94560;
+            font-size: 1rem;
+        }
+        .remove-cart-btn {
+            background: none;
+            border: none;
+            color: #e94560;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: 0.5rem;
+        }
+        .cart-total {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 1.5rem 0 1rem 0;
+            text-align: right;
+        }
+        .checkout-btn {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        .checkout-btn:hover {
+            background: #b71c3b;
+        }
+        .close-cart {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            font-size: 1.5rem;
+            color: #e94560;
+            cursor: pointer;
+        }
+        /* Payment Modal */
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+        .payment-modal.show {
+            display: flex;
+        }
+        .payment-content {
+            background: #232323;
+            padding: 2rem 2.5rem;
+            border-radius: 15px;
+            text-align: center;
+            color: #fff;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .payment-content h3 {
+            color: #e94560;
+            margin-bottom: 1rem;
+        }
+        .pay-btn {
+            background: #e94560;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            padding: 0.7rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: background 0.2s;
+        }
+        .pay-btn:hover {
+            background: #b71c3b;
+        }
+        .close-payment {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            font-size: 1.5rem;
+            color: #e94560;
+            cursor: pointer;
+        }
+        @media (max-width: 700px) {
+            .shop-grid {
+                grid-template-columns: 1fr;
+            }
+            .cart-modal {
+                width: 100vw;
+                padding: 1.2rem 0.5rem 1.2rem 0.5rem;
+            }
+        }
+        /* Add to .cart-item-price for better button spacing */
+        .qty-btn {
+            background: #232323;
+            color: #e94560;
+            border: 1px solid #e94560;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin: 0 0.3rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .qty-btn:hover {
+            background: #e94560;
+            color: #fff;
+        }
+        .cart-qty {
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+            font-weight: 600;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <header>Crixon Shop</header>
+    <div style="max-width:1100px;margin:1.5rem auto 0 auto;padding:0 1rem;">
+        <a href="cric.html" style="display:inline-block;background:#e94560;color:#fff;padding:0.6rem 1.5rem;border-radius:25px;font-weight:600;text-decoration:none;transition:background 0.2s;box-shadow:0 2px 8px #0002;">&larr; Back to Home</a>
+    </div>
+    <div class="container">
+        <div class="shop-title">Cricket Gear & Merchandise</div>
+        <div class="shop-grid" id="shopGrid">
+            <!-- Products will be rendered here -->
+        </div>
+    </div>
+    <div class="cart-icon" id="cartIcon">
+        🛒<span class="cart-count" id="cartCount">0</span>
+    </div>
+    <div class="cart-modal" id="cartModal">
+        <span class="close-cart" id="closeCart">&times;</span>
+        <h2>Your Cart</h2>
+        <div id="cartItems"></div>
+        <div class="cart-total" id="cartTotal"></div>
+        <button class="checkout-btn" id="checkoutBtn">Checkout</button>
+    </div>
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <span class="close-payment" id="closePayment">&times;</span>
+            <h3>Payment Gateway (Demo)</h3>
+            <p>Pay securely for your cricket gear!</p>
+            <button class="pay-btn" id="payBtn">Pay Now</button>
+            <div id="paymentStatus" style="margin-top:1.5rem;font-size:1.1rem;"></div>
+        </div>
+    </div>
+    <div id="toast" style="display:none;position:fixed;bottom:2.5rem;left:50%;transform:translateX(-50%);background:#232323;color:#fff;padding:2rem 3.5rem;border-radius:40px;box-shadow:0 4px 16px #0008;font-size:1.7rem;z-index:4000;transition:opacity 0.3s;">Product added to cart</div>
+    <script>
+        // Sample products
+        const products = [
+            {
+                name: "SS Ton Cricket Bat",
+                price: 4999,
+                img: "./pictures/ss.png"
+            },
+            {
+                name: "SG Test Batting Gloves",
+                price: 1499,
+                img: "./pictures/sgglove.png"
+            },
+            {
+                name: "MRF Genius Helmet",
+                price: 2799,
+                img: "./pictures/mrf.png"
+            },
+            {
+                name: "Adidas Cricket Shoes",
+                price: 3499,
+                img: "https://assets.adidas.com/images/w_600,f_auto,q_auto/6e2e4e7e2e2a4e7b8b6aad1e00e1e1e1_9366/22_Yard_FX_Cricket_Shoes_White_GZ5387_01_standard.jpg"
+            },
+            {
+                name: "Kookaburra Ball",
+                price: 799,
+                img: "https://www.kookaburra.biz/cdn/shop/products/Kookaburra-Turf-White-156g-Front_800x.jpg"
+            }
+        ];
+
+        // Render products
+        const shopGrid = document.getElementById('shopGrid');
+        products.forEach((product, idx) => {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <img src="${product.img}" alt="${product.name}" class="product-image">
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">₹${product.price.toLocaleString()}</div>
+                <div style="display:flex;gap:0.7rem;justify-content:center;">
+                    <button class="add-cart-btn" data-idx="${idx}">Add to Cart</button>
+                    <button class="buy-now-btn" data-idx="${idx}">Buy Now</button>
+                </div>
+            `;
+            shopGrid.appendChild(card);
+        });
+
+        // Cart logic
+        let cart = [];
+        const cartIcon = document.getElementById('cartIcon');
+        const cartModal = document.getElementById('cartModal');
+        const closeCart = document.getElementById('closeCart');
+        const cartCount = document.getElementById('cartCount');
+        const cartItems = document.getElementById('cartItems');
+        const cartTotal = document.getElementById('cartTotal');
+        const checkoutBtn = document.getElementById('checkoutBtn');
+
+        function updateCart() {
+            cartCount.textContent = cart.reduce((sum, item) => sum + item.qty, 0);
+            cartItems.innerHTML = '';
+            let total = 0;
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="color:#bdbdbd;text-align:center;">Your cart is empty.</p>';
+                cartTotal.textContent = '';
+                checkoutBtn.disabled = true;
+                checkoutBtn.style.opacity = 0.6;
+                return;
+            }
+            cart.forEach((item, idx) => {
+                total += item.price * item.qty;
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <img src="${item.img}" class="cart-item-img" alt="${item.name}">
+                    <div class="cart-item-details">
+                        <div class="cart-item-name">${item.name}</div>
+                        <div class="cart-item-price">₹${item.price.toLocaleString()} x 
+                            <button class="qty-btn" data-idx="${idx}" data-action="decrease">-</button>
+                            <span class="cart-qty">${item.qty}</span>
+                            <button class="qty-btn" data-idx="${idx}" data-action="increase">+</button>
+                        </div>
+                    </div>
+                    <button class="remove-cart-btn" data-idx="${idx}">&times;</button>
+                `;
+                cartItems.appendChild(div);
+            });
+            cartTotal.textContent = `Total: ₹${total.toLocaleString()}`;
+            checkoutBtn.disabled = false;
+            checkoutBtn.style.opacity = 1;
+        }
+
+        // Toast notification function
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 300);
+            }, 1500);
+        }
+
+        // Buy Now logic
+        let tempBuyProduct = null;
+        function showPaymentModalForBuyNow() {
+            paymentModal.classList.add('show');
+            paymentStatus.innerHTML = `
+                <div style="margin-bottom:1rem;">
+                    <img src="${tempBuyProduct.img}" style="width:80px;height:80px;object-fit:contain;border-radius:10px;background:#181818;border:2px solid #333;">
+                    <div style="font-size:1.2rem;font-weight:600;margin-top:0.5rem;">${tempBuyProduct.name}</div>
+                    <div style="color:#e94560;font-size:1.1rem;">₹${tempBuyProduct.price.toLocaleString()}</div>
+                </div>
+                <div style="margin-bottom:1.2rem;text-align:left;">
+                    <div style="font-weight:600;margin-bottom:0.5rem;">Choose Payment Method:</div>
+                    <label style="display:block;margin-bottom:0.3rem;">
+                        <input type="radio" name="paymethod" value="UPI" checked> UPI
+                    </label>
+                    <label style="display:block;margin-bottom:0.3rem;">
+                        <input type="radio" name="paymethod" value="Netbanking"> Netbanking
+                    </label>
+                    <label style="display:block;margin-bottom:0.3rem;">
+                        <input type="radio" name="paymethod" value="PhonePe"> PhonePe
+                    </label>
+                    <label style="display:block;margin-bottom:0.3rem;">
+                        <input type="radio" name="paymethod" value="GPay"> GPay
+                    </label>
+                </div>
+                <button id="buyNowBackBtn" style="margin-top:1rem;background:#232323;color:#e94560;border:2px solid #e94560;border-radius:25px;padding:0.7rem 2rem;font-size:1.1rem;font-weight:700;cursor:pointer;transition:background 0.2s;">Back</button>
+            `;
+            payBtn.style.display = '';
+            // Add event listener for Back button
+            setTimeout(() => {
+                const backBtn = document.getElementById('buyNowBackBtn');
+                if (backBtn) {
+                    backBtn.onclick = function() {
+                        paymentModal.classList.remove('show');
+                        tempBuyProduct = null;
+                    };
+                }
+            }, 50);
+        }
+
+        shopGrid.addEventListener('click', function(e) {
+            if (e.target.classList.contains('buy-now-btn')) {
+                const idx = +e.target.getAttribute('data-idx');
+                const prod = products[idx];
+                // Save product to localStorage
+                localStorage.setItem('buyNowProduct', JSON.stringify(prod));
+                // Redirect to payment page
+                window.location.href = 'payment.html';
+            }
+        });
+
+        // Add to cart
+        shopGrid.addEventListener('click', function(e) {
+            if (e.target.classList.contains('add-cart-btn')) {
+                const idx = +e.target.getAttribute('data-idx');
+                const prod = products[idx];
+                const found = cart.find(item => item.name === prod.name);
+                if (found) {
+                    found.qty++;
+                } else {
+                    cart.push({ ...prod, qty: 1 });
+                }
+                updateCart();
+                showToast(`You have added ${prod.name} to cart`);
+            }
+        });
+
+        // Show/hide cart
+        cartIcon.addEventListener('click', () => {
+            cartModal.classList.add('show');
+            updateCart();
+        });
+        closeCart.addEventListener('click', () => {
+            cartModal.classList.remove('show');
+        });
+        // Remove from cart
+        cartItems.addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-cart-btn')) {
+                const idx = +e.target.getAttribute('data-idx');
+                cart.splice(idx, 1);
+                updateCart();
+            }
+        });
+        // Quantity adjustment
+        cartItems.addEventListener('click', function(e) {
+            if (e.target.classList.contains('qty-btn')) {
+                const idx = +e.target.getAttribute('data-idx');
+                const action = e.target.getAttribute('data-action');
+                if (action === 'increase') {
+                    cart[idx].qty++;
+                } else if (action === 'decrease') {
+                    cart[idx].qty--;
+                    if (cart[idx].qty <= 0) {
+                        cart.splice(idx, 1);
+                    }
+                }
+                updateCart();
+            }
+        });
+
+        // Payment gateway mock
+        const paymentModal = document.getElementById('paymentModal');
+        const closePayment = document.getElementById('closePayment');
+        const payBtn = document.getElementById('payBtn');
+        const paymentStatus = document.getElementById('paymentStatus');
+
+        checkoutBtn.addEventListener('click', () => {
+            // Save cart to localStorage
+            localStorage.setItem('cartForPayment', JSON.stringify(cart));
+            // Remove any single buy product (to avoid confusion)
+            localStorage.removeItem('buyNowProduct');
+            // Redirect to payment page
+            window.location.href = 'payment.html';
+        });
+        closePayment.addEventListener('click', () => {
+            paymentModal.classList.remove('show');
+            payBtn.style.display = '';
+        });
+        payBtn.addEventListener('click', () => {
+            payBtn.disabled = true;
+            paymentStatus.textContent = 'Processing payment...';
+            setTimeout(() => {
+                if (tempBuyProduct) {
+                    let selectedMethod = 'UPI';
+                    const methodInput = document.querySelector('input[name="paymethod"]:checked');
+                    if (methodInput) selectedMethod = methodInput.value;
+                    paymentStatus.innerHTML = `
+                      <div style="font-size:3rem; color:#4BB543; margin-bottom:0.5rem;">&#10004;</div>
+                      <div style="font-size:1.3rem; font-weight:600; color:#e94560; margin-bottom:0.5rem;">Thank You!</div>
+                      <div style="color:#bdbdbd; font-size:1.1rem;">Your payment for <b>${tempBuyProduct.name}</b> was successful via <b>${selectedMethod}</b>.<br>We appreciate your purchase at <b>Crixon</b>.<br>Have a great day!</div>
+                      <button id='backToShopBtn' style="margin-top:1.5rem; background:#e94560; color:#fff; border:none; border-radius:25px; padding:0.7rem 2rem; font-size:1.1rem; font-weight:700; cursor:pointer; transition:background 0.2s;">Back to Shop</button>
+                    `;
+                    tempBuyProduct = null;
+                } else {
+                    paymentStatus.innerHTML = `
+                      <div style="font-size:3rem; color:#4BB543; margin-bottom:0.5rem;">&#10004;</div>
+                      <div style="font-size:1.3rem; font-weight:600; color:#e94560; margin-bottom:0.5rem;">Thank You!</div>
+                      <div style="color:#bdbdbd; font-size:1.1rem;">Your payment was successful.<br>We appreciate your purchase at <b>Crixon</b>.<br>Have a great day!</div>
+                      <button id='backToShopBtn' style="margin-top:1.5rem; background:#e94560; color:#fff; border:none; border-radius:25px; padding:0.7rem 2rem; font-size:1.1rem; font-weight:700; cursor:pointer; transition:background 0.2s;">Back to Shop</button>
+                    `;
+                    cart = [];
+                    updateCart();
+                }
+                payBtn.style.display = 'none';
+                // Add event listener for back button
+                setTimeout(() => {
+                  const backBtn = document.getElementById('backToShopBtn');
+                  if (backBtn) {
+                    backBtn.onclick = function() {
+                      paymentModal.classList.remove('show');
+                      payBtn.style.display = '';
+                    };
+                  }
+                }, 100);
+            }, 1800);
+        });
+    </script>
+</body>
+</html>

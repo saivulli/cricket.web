@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Gateway | Crixon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { background: #181818; color: #f5f5f5; font-family: 'Montserrat', sans-serif; margin: 0; }
+        .container { max-width: 400px; margin: 3rem auto; background: #232323; border-radius: 15px; padding: 2rem; box-shadow: 0 4px 24px #0008; }
+        .product-img { width: 100px; height: 100px; object-fit: contain; border-radius: 10px; background: #181818; border: 2px solid #333; display: block; margin: 0 auto 1rem auto; }
+        .product-name { font-size: 1.3rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; }
+        .product-price { color: #e94560; font-size: 1.1rem; text-align: center; margin-bottom: 1.5rem; }
+        .pay-methods { margin-bottom: 1.5rem; }
+        .pay-method-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .pay-method-btn {
+            background: #232323;
+            border: 2px solid #333;
+            border-radius: 18px;
+            padding: 1.2rem 1.5rem;
+            font-size: 1.2rem;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 90px;
+            transition: border 0.2s, background 0.2s, color 0.2s;
+            box-shadow: 0 2px 8px #0002;
+            user-select: none;
+        }
+        .pay-method-btn.selected, .pay-method-btn:hover {
+            border: 2.5px solid #e94560;
+            background: #181818;
+            color: #e94560;
+        }
+        .pay-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+        .pay-method-btn img {
+            display: inline-block;
+            border-radius: 50%;
+            background: #fff;
+            padding: 2px;
+        }
+        .pay-methods input[type="text"] {
+            font-size: 1.3rem;
+            padding: 0.7rem 1.5rem;
+            border-radius: 24px;
+            border: 1.5px solid #e94560;
+            background: #181818;
+            color: #fff;
+            width: 90%;
+            margin-top: 0.3rem;
+        }
+        .pay-btn { background: #e94560; color: #fff; border: none; border-radius: 25px; padding: 0.8rem 2rem; font-size: 1.1rem; font-weight: 700; cursor: pointer; width: 100%; margin-top: 1rem; transition: background 0.2s; }
+        .pay-btn:hover { background: #b71c3b; }
+        .thank-you { text-align: center; margin-top: 2rem; }
+        .back-btn { margin-top: 1.5rem; background: #232323; color: #e94560; border: 2px solid #e94560; border-radius: 25px; padding: 0.7rem 2rem; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .back-btn:hover { background: #e94560; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container" id="paymentContainer">
+        <!-- Payment gateway will be rendered here -->
+    </div>
+    <script>
+        // Get product from localStorage
+        const prod = JSON.parse(localStorage.getItem('buyNowProduct'));
+        const cart = JSON.parse(localStorage.getItem('cartForPayment'));
+        const container = document.getElementById('paymentContainer');
+        if (cart && Array.isArray(cart) && cart.length > 0) {
+            renderCartPayment();
+        } else if (prod) {
+            // Single product payment view
+            container.innerHTML = `
+                <img src="${prod.img}" class="product-img" alt="${prod.name}">
+                <div class="product-name">${prod.name}</div>
+                <div class="product-price">₹${prod.price.toLocaleString()}</div>
+                <div class="pay-methods">
+                    <div style="font-weight:600;margin-bottom:0.5rem;">Choose Payment Method:</div>
+                    <div id="payMethodOptions" class="pay-method-options">
+                        <div class="pay-method-btn selected" data-method="UPI">
+                            <span class="pay-icon">💸</span>
+                            <span>UPI</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="Netbanking">
+                            <span class="pay-icon">🏦</span>
+                            <span>Netbanking</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="PhonePe">
+                            <span class="pay-icon"><img src="https://seeklogo.com/images/P/phonepe-logo-0F6D0C6F50-seeklogo.com.png" alt="PhonePe" style="width:32px;height:32px;vertical-align:middle;"></span>
+                            <span>PhonePe</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="GPay">
+                            <span class="pay-icon"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/Google_Pay_%28GPay%29_Logo.svg" alt="GPay" style="width:32px;height:32px;vertical-align:middle;"></span>
+                            <span>GPay</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedPayMethod" value="UPI">
+                    <div id="upiNumberField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your UPI Number:
+                            <input type="text" id="upiNumberInput" placeholder="1234567890" style="margin-left:0.5rem;">
+                        </label>
+                    </div>
+                    <div id="upiIdField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your UPI ID:
+                            <input type="text" id="upiIdInput" placeholder="yourname@upi" style="margin-left:0.5rem;padding:0.4rem 1rem;border-radius:20px;border:1px solid #333;background:#181818;color:#fff;">
+                        </label>
+                    </div>
+                    <div id="accNumberField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your Account Number:
+                            <input type="text" id="accNumberInput" placeholder="Account Number" style="margin-left:0.5rem;padding:0.4rem 1rem;border-radius:20px;border:1px solid #333;background:#181818;color:#fff;">
+                        </label>
+                    </div>
+                </div>
+                <button class="back-btn" id="backBtn" style="margin-bottom:1rem;">Back</button>
+                <button class="pay-btn" id="payBtn">Pay Now</button>
+            `;
+            document.getElementById('backBtn').onclick = function() {
+                window.location.href = 'shop.html';
+            };
+            document.getElementById('payBtn').onclick = function() {
+                const selectedMethod = document.getElementById('selectedPayMethod').value;
+                if (selectedMethod === 'PhonePe' || selectedMethod === 'GPay') {
+                    const upiId = document.getElementById('upiIdInput').value.trim();
+                    if (!upiId) {
+                        alert('Please enter your UPI ID for ' + selectedMethod + ' payment.');
+                        return;
+                    }
+                }
+                if (selectedMethod === 'UPI') {
+                    const upiNumber = document.getElementById('upiNumberInput').value.trim();
+                    if (!upiNumber) {
+                        alert('Please enter your UPI Number for UPI payment.');
+                        return;
+                    }
+                }
+                if (selectedMethod === 'Netbanking') {
+                    const accNumber = document.getElementById('accNumberInput').value.trim();
+                    if (!accNumber) {
+                        alert('Please enter your Account Number for Netbanking payment.');
+                        return;
+                    }
+                }
+                container.innerHTML = `
+                    <div class="thank-you">
+                        <div style="font-size:3rem; color:#4BB543; margin-bottom:0.5rem;">&#10004;</div>
+                        <div style="font-size:1.3rem; font-weight:600; color:#e94560; margin-bottom:0.5rem;">Thank You!</div>
+                        <div style="color:#bdbdbd; font-size:1.1rem;">Your payment for <b>${prod.name}</b> was successful via <b>${selectedMethod}</b>.<br>We appreciate your purchase at <b>Crixon</b>.<br>Have a great day!</div>
+                        <button class="back-btn" onclick="window.location.href='shop.html'">Back to Shop</button>
+                    </div>
+                `;
+                localStorage.removeItem('buyNowProduct');
+            };
+            const payMethodOptions = document.getElementById('payMethodOptions');
+            const selectedPayMethod = document.getElementById('selectedPayMethod');
+            payMethodOptions.querySelectorAll('.pay-method-btn').forEach(btn => {
+                btn.onclick = function() {
+                    payMethodOptions.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedPayMethod.value = btn.getAttribute('data-method');
+                    updatePaymentFields(selectedPayMethod.value);
+                };
+            });
+            updatePaymentFields(selectedPayMethod.value);
+        } else {
+            container.innerHTML = '<div style="text-align:center;color:#e94560;">No product selected for payment.</div>';
+        }
+
+        function renderCartPayment() {
+            const cart = JSON.parse(localStorage.getItem('cartForPayment')) || [];
+            if (!cart.length) {
+                container.innerHTML = '<div style="text-align:center;color:#e94560;">Your cart is empty.</div>';
+                localStorage.removeItem('cartForPayment');
+                return;
+            }
+            let total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            container.innerHTML = `
+                <div style="font-size:1.3rem;font-weight:700;text-align:center;margin-bottom:1.5rem;">Cart Payment</div>
+                <div style="max-height:200px;overflow-y:auto;margin-bottom:1rem;">
+                    ${cart.map((item, idx) => `
+                        <div style='display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;'>
+                            <img src="${item.img}" style="width:50px;height:50px;object-fit:contain;border-radius:8px;background:#181818;border:2px solid #333;">
+                            <div style="flex:1;">
+                                <div style="font-weight:600;">${item.name}</div>
+                                <div style="color:#e94560;">₹${item.price.toLocaleString()} x ${item.qty}</div>
+                            </div>
+                            <button class="remove-cart-item" data-idx="${idx}" style="background:#e94560;color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:1.2rem;cursor:pointer;">&times;</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="font-size:1.1rem;font-weight:600;text-align:right;margin-bottom:1.2rem;">Total: <span style='color:#e94560;'>₹${total.toLocaleString()}</span></div>
+                <div class="pay-methods">
+                    <div style="font-weight:600;margin-bottom:0.5rem;">Choose Payment Method:</div>
+                    <div id="payMethodOptions" class="pay-method-options">
+                        <div class="pay-method-btn selected" data-method="UPI">
+                            <span class="pay-icon">💸</span>
+                            <span>UPI</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="Netbanking">
+                            <span class="pay-icon">🏦</span>
+                            <span>Netbanking</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="PhonePe">
+                            <span class="pay-icon"><img src="./pictures/ppay.png" alt="PhonePe" style="width:32px;height:32px;vertical-align:middle;"></span>
+                            <span>PhonePe</span>
+                        </div>
+                        <div class="pay-method-btn" data-method="GPay">
+                            <span class="pay-icon"><img src="./pictures/gpy.png" alt="GPay" style="width:32px;height:32px;vertical-align:middle;"></span>
+                            <span>GPay</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedPayMethod" value="UPI">
+                    <div id="upiNumberField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your UPI Number:
+                            <input type="text" id="upiNumberInput" placeholder="1234567890" style="margin-left:0.5rem;">
+                        </label>
+                    </div>
+                    <div id="upiIdField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your UPI ID:
+                            <input type="text" id="upiIdInput" placeholder="yourname@upi" style="margin-left:0.5rem;padding:0.4rem 1rem;border-radius:20px;border:1px solid #333;background:#181818;color:#fff;">
+                        </label>
+                    </div>
+                    <div id="accNumberField" style="display:none;margin-top:0.7rem;">
+                        <label style="font-weight:500;">Enter your Account Number:
+                            <input type="text" id="accNumberInput" placeholder="Account Number" style="margin-left:0.5rem;padding:0.4rem 1rem;border-radius:20px;border:1px solid #333;background:#181818;color:#fff;">
+                        </label>
+                    </div>
+                </div>
+                <button class="back-btn" id="backBtn" style="margin-bottom:1rem;">Back</button>
+                <button class="pay-btn" id="payBtn">Pay Now</button>
+            `;
+            document.getElementById('backBtn').onclick = function() {
+                window.location.href = 'shop.html';
+            };
+            document.getElementById('payBtn').onclick = function() {
+                const selectedMethod = document.getElementById('selectedPayMethod').value;
+                if (selectedMethod === 'PhonePe' || selectedMethod === 'GPay') {
+                    const upiId = document.getElementById('upiIdInput').value.trim();
+                    if (!upiId) {
+                        alert('Please enter your UPI ID for ' + selectedMethod + ' payment.');
+                        return;
+                    }
+                }
+                if (selectedMethod === 'UPI') {
+                    const upiNumber = document.getElementById('upiNumberInput').value.trim();
+                    if (!upiNumber) {
+                        alert('Please enter your UPI Number for UPI payment.');
+                        return;
+                    }
+                }
+                if (selectedMethod === 'Netbanking') {
+                    const accNumber = document.getElementById('accNumberInput').value.trim();
+                    if (!accNumber) {
+                        alert('Please enter your Account Number for Netbanking payment.');
+                        return;
+                    }
+                }
+                container.innerHTML = `
+                    <div class="thank-you">
+                        <div style="font-size:3rem; color:#4BB543; margin-bottom:0.5rem;">&#10004;</div>
+                        <div style="font-size:1.3rem; font-weight:600; color:#e94560; margin-bottom:0.5rem;">Thank You!</div>
+                        <div style="color:#bdbdbd; font-size:1.1rem;">Your payment for <b>${cart.length} item(s)</b> was successful via <b>${selectedMethod}</b>.<br>We appreciate your purchase at <b>Crixon</b>.<br>Have a great day!</div>
+                        <button class="back-btn" onclick="window.location.href='shop.html'">Back to Shop</button>
+                    </div>
+                `;
+                localStorage.removeItem('cartForPayment');
+            };
+            // Remove item handler
+            document.querySelectorAll('.remove-cart-item').forEach(btn => {
+                btn.onclick = function() {
+                    const idx = +btn.getAttribute('data-idx');
+                    cart.splice(idx, 1);
+                    localStorage.setItem('cartForPayment', JSON.stringify(cart));
+                    renderCartPayment();
+                };
+            });
+            const payMethodOptions = document.getElementById('payMethodOptions');
+            const selectedPayMethod = document.getElementById('selectedPayMethod');
+            payMethodOptions.querySelectorAll('.pay-method-btn').forEach(btn => {
+                btn.onclick = function() {
+                    payMethodOptions.querySelectorAll('.pay-method-btn').forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                    selectedPayMethod.value = btn.getAttribute('data-method');
+                    updatePaymentFields(selectedPayMethod.value);
+                };
+            });
+            updatePaymentFields(selectedPayMethod.value);
+        }
+
+        function updatePaymentFields(selected) {
+            document.getElementById('upiNumberField').style.display = (selected === 'UPI') ? '' : 'none';
+            document.getElementById('upiIdField').style.display = (selected === 'PhonePe' || selected === 'GPay') ? '' : 'none';
+            document.getElementById('accNumberField').style.display = (selected === 'Netbanking') ? '' : 'none';
+        }
+    </script>
+</body>
+</html>
